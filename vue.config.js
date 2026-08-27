@@ -71,7 +71,7 @@ module.exports = {
   },
 
   publicPath: process.env.NODE_ENV === 'production'
-    ? '/easy-typer'
+    ? '/easy-typer/'
     : '/',
 
   outputDir: 'docs',
@@ -103,7 +103,7 @@ module.exports = {
   pluginOptions: {
     prerenderSpa: {
       registry: undefined,
-      renderRoutes: [],
+      renderRoutes: routes,
       useRenderEvent: true,
       headless: true,
       onlyProduction: true
