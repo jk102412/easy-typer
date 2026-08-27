@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     # 新增：部署完成后在 Actions 页面显示网站地址
     environment:
       name: github-pages
