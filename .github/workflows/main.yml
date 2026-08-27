@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main # default branch
+  workflow_dispatch:   # 新增：允许在 Actions 页面手动点击运行
 
 # 新增：授权此 workflow 部署到 GitHub Pages
 permissions:
