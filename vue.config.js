@@ -102,6 +102,7 @@ module.exports = {
   productionSourceMap: false,
   pluginOptions: {
     prerenderSpa: {
+      disable: true,
       registry: undefined,
       renderRoutes: routes,
       useRenderEvent: true,
