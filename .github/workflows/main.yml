@@ -1,12 +1,28 @@
 name: Deploy easy typer
+
 on:
   push:
     branches:
       - main # default branch
 
+# 新增：授权此 workflow 部署到 GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 新增：避免连续 push 导致多个部署同时进行
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # 新增：部署完成后在 Actions 页面显示网站地址
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -31,22 +47,12 @@ jobs:
       run: |
         yarn install --frozen-lockfile
         yarn build
-    - name: Deploy to Server
-      uses: easingthemes/ssh-deploy@main
-      env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          ARGS: "-rlgoDzvc -i --rsync-path=\"sudo rsync\""
-          SOURCE: "docs/"
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          REMOTE_PORT: 7022
-          TARGET: ${{ secrets.REMOTE_TARGET }}
-          EXCLUDE: "/dist/, .user.ini"
-          SCRIPT_BEFORE: |
-            ls ${{ secrets.REMOTE_TARGET }} -al
-          SCRIPT_AFTER: |
-            sudo chown -R www.www ${{ secrets.REMOTE_TARGET }}
-            ls ${{ secrets.REMOTE_TARGET }} -al
-    - name: Push
-      run: |
-         curl https://api.day.app/${{ secrets.PUSH_TOKEN }}/typer.owenyang.top/✅部署成功?icon=https://static.owenyang.top/blogs/avatar.jpg
+
+    # 以下为替换后的部署部分：上传到 GitHub Pages
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docs/          # 与 vue.config.js 的 outputDir 对应
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
