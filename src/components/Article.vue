@@ -122,34 +122,45 @@ export default class Article extends Vue {
 
   /**
    * 自动调整滚动条位置
+   * 使用实际渲染行高计算偏移，并在 DOM 更新后执行，解决文章行数为 1 时打完当前行后下一行不可见的问题
    */
   @Watch('progress')
   autoScroll (progress: number) {
-    const el = (this.$refs.board as Vue).$el
-    const { clientHeight, scrollHeight } = el
-    const scrollDistance = scrollHeight - clientHeight
-    if (scrollDistance <= 0) {
-      return
-    }
+    this.$nextTick(() => {
+      const board = this.$refs.board as Vue
+      if (!board || !board.$el) {
+        return
+      }
+      const el = board.$el as HTMLElement
+      const { clientHeight, scrollHeight } = el
+      const scrollDistance = scrollHeight - clientHeight
+      if (scrollDistance <= 0) {
+        return
+      }
 
-    if (progress === 0) {
-      el.scrollTop = 0
-      return
-    }
+      if (progress === 0) {
+        el.scrollTop = 0
+        return
+      }
 
-    const suffixOffset = this.hint ? 2 : 1
-    const baseOffset = (parseFloat(this.fontSize) + suffixOffset) * 12
-
-    const fixed = this.hint ? Math.max(0, baseOffset * (this.articleRows - 1) - 0.5 * baseOffset) : baseOffset * (this.articleRows - 1)
-
-    const pending = document.querySelector('.code1,.code2,.code3,.code4,.pending') as HTMLElement
-    if (pending) {
-      el.scrollTop = Math.max(0, pending.offsetTop - fixed)
-    } else {
-      el.scrollTop = Math.min(progress * scrollDistance, scrollDistance)
-    }
+      const pending = document.querySelector('.code1,.code2,.code3,.code4,.pending') as HTMLElement
+      if (pending) {
+        // 用容器实际高度除以行数得到真实行高，避免原先 (fontSize + offset) * 12 的近似值
+        // 在行数为 1 时近似值会导致偏移错误，下一行滚不出可视区
+        const rows = Math.max(1, this.articleRows)
+        const lineHeight = clientHeight / rows
+        let fixed = lineHeight * (rows - 1)
+        if (this.hint) {
+          // 有编码提示时略微上移，让当前待打位置更接近可视区中部
+          fixed = Math.max(0, fixed - 0.5 * lineHeight)
+        }
+        el.scrollTop = Math.max(0, pending.offsetTop - fixed)
+      } else {
+        el.scrollTop = Math.min(progress * scrollDistance, scrollDistance)
+      }
+    })
   }
-
+  
   check (index: number, input: string, target: string, words: Array<Word>): void {
     const length = target.length
     const targetWords = target.split('')
