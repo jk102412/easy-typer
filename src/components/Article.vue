@@ -160,7 +160,7 @@ export default class Article extends Vue {
       }
     })
   }
-  
+
   check (index: number, input: string, target: string, words: Array<Word>): void {
     const length = target.length
     const targetWords = target.split('')
